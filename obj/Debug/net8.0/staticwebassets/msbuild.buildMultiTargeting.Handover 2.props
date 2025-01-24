@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\Handover 2.props" />
-</Project>
