@@ -1,0 +1,46 @@
+﻿@page "/changelog"
+@model Handover_2.Pages.Changelog.ChangeslogModel
+@{
+    ViewData["Title"] = "Change Log";
+}
+
+<h1>Change Log</h1>
+
+<p>This page displays recent changes made to forms.</p>
+
+<!-- Table to Display Change Logs -->
+<table class="table table-bordered mt-4">
+    <thead>
+        <tr>
+            <th>Action</th>
+            <th>Form Title</th>
+            <th>Changed By</th>
+            <th>Date & Time</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Sample Data -->
+        <tr>
+            <td>Created</td>
+            <td>Investigation Plan 1</td>
+            <td>matood@test.com</td>
+            <td>2024-01-07 14:30:00</td>
+            <td>Form created.</td>
+        </tr>
+        <tr>
+            <td>Updated</td>
+            <td>Residence Privacy</td>
+            <td>admin@test.com</td>
+            <td>2024-01-07 14:35:00</td>
+            <td>Form updated.</td>
+        </tr>
+        <tr>
+            <td>Deleted</td>
+            <td>Case Report 123</td>
+            <td>supervisor@test.com</td>
+            <td>2024-01-07 14:40:00</td>
+            <td>Form deleted.</td>
+        </tr>
+    </tbody>
+</table>

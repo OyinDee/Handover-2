@@ -1,0 +1,160 @@
+﻿@page
+@model Handover_2.Pages.Form.IndexModel
+@{
+    ViewData["Title"] = "Form Page";
+}
+
+<h1>Investigation Plan Form</h1>
+<form method="post">
+
+    <!-- General Information Section -->
+    <fieldset>
+        <legend>General Information</legend>
+        <div class="mb-3">
+            <label for="linkedCrimes" class="form-label">Linked Crimes</label>
+            <input type="text" id="linkedCrimes" name="linkedCrimes" class="form-control" placeholder="Enter crime reference numbers">
+        </div>
+        <div class="mb-3">
+            <label for="officerResponsible" class="form-label">Officer Responsible</label>
+            <select id="officerResponsible" name="officerResponsible" class="form-select">
+                <option value="">Select Officer</option>
+                <!-- Add dynamic officer options -->
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="supervisorResponsible" class="form-label">Supervisor Responsible</label>
+            <select id="supervisorResponsible" name="supervisorResponsible" class="form-select">
+                <option value="">Select Supervisor</option>
+                <!-- Add dynamic supervisor options -->
+            </select>
+        </div>
+    </fieldset>
+
+    <!-- THRIVE Assessment Section -->
+    <fieldset>
+        <legend>THRIVE Assessment</legend>
+        @foreach (var element in new[] { "Threat", "Harm", "Risk", "Investigation", "Vulnerability", "Engagement" })
+        {
+            <div class="mb-3">
+                <label for="@element" class="form-label">@element</label>
+                <textarea id="@element" name="@element" class="form-control" rows="3"></textarea>
+            </div>
+        }
+    </fieldset>
+
+    <!-- Case Summary Section -->
+    <fieldset>
+        <legend>Case Summary</legend>
+        <div class="mb-3">
+            <label for="summaryOfEvents" class="form-label">Summary of Events</label>
+            <textarea id="summaryOfEvents" name="summaryOfEvents" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="crimesRecorded" class="form-label">Crimes Recorded</label>
+            <input type="text" id="crimesRecorded" name="crimesRecorded" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="poleMapLinks" class="form-label">POLE Map Links</label>
+            <textarea id="poleMapLinks" name="poleMapLinks" class="form-control" rows="3"></textarea>
+        </div>
+    </fieldset>
+
+    <!-- Legal and Procedural Considerations Section -->
+    <fieldset>
+        <legend>Legal and Procedural Considerations</legend>
+        <div class="mb-3">
+            <label for="lopConsiderations" class="form-label">LOP Considerations</label>
+            <textarea id="lopConsiderations" name="lopConsiderations" class="form-control" rows="3"></textarea>
+        </div>
+    </fieldset>
+
+    <!-- Crime Scene Management Section -->
+    <fieldset>
+        <legend>Crime Scene Management</legend>
+        <div class="mb-3">
+            <label for="actionsTaken" class="form-label">Actions Taken</label>
+            <textarea id="actionsTaken" name="actionsTaken" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="pendingActions" class="form-label">Pending Actions</label>
+            <textarea id="pendingActions" name="pendingActions" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Evidence Details</label>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th>Relevance</th>
+                        <th>Storage Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" name="evidenceDescription[]" class="form-control"></td>
+                        <td><input type="text" name="evidenceRelevance[]" class="form-control"></td>
+                        <td><input type="text" name="evidenceStorage[]" class="form-control"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+
+    <!-- Plans for Key Stakeholders Section -->
+    <fieldset>
+        <legend>Plans for Key Stakeholders</legend>
+        <!-- Victim/Complainant Plan -->
+        <div class="mb-3">
+            <label for="victimVulnerabilities" class="form-label">Identified Vulnerabilities</label>
+            <textarea id="victimVulnerabilities" name="victimVulnerabilities" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="supportServices" class="form-label">Support Services Referral</label>
+            <select id="supportServices" name="supportServices" class="form-select">
+                <option value="">Select Agency</option>
+                <!-- Add dynamic agency options -->
+            </select>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" id="victimNeedsAssessment" name="victimNeedsAssessment" class="form-check-input">
+            <label for="victimNeedsAssessment" class="form-check-label">Victim Needs Assessment Completed</label>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" id="vps" name="vps" class="form-check-input">
+            <label for="vps" class="form-check-label">Victim Personal Statement (VPS) Completed</label>
+        </div>
+    </fieldset>
+
+    <!-- Evidence and Data Section -->
+    <fieldset>
+        <legend>Evidence and Data</legend>
+        <div class="mb-3">
+            <label class="form-label">Device Seizure Details</label>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Device Type</th>
+                        <th>ERP Reference</th>
+                        <th>Consent Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" name="deviceType[]" class="form-control"></td>
+                        <td><input type="text" name="erpReference[]" class="form-control"></td>
+                        <td><input type="text" name="consentStatus[]" class="form-control"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="mb-3">
+            <label for="evidenceCollectionPlan" class="form-label">Evidence Collection Plan</label>
+            <textarea id="evidenceCollectionPlan" name="evidenceCollectionPlan" class="form-control" rows="3"></textarea>
+        </div>
+    </fieldset>
+
+    <!-- Submit Button -->
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>

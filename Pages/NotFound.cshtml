@@ -1,0 +1,31 @@
+@page
+@model NotFoundModel
+@{
+    ViewData["Title"] = "404 - Page Not Found";
+}
+
+<div class="container text-center mt-5">
+    <h1 class="display-1">404</h1>
+    <h2 class="mb-4">Page Not Found</h2>
+    <p class="lead">The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+    <a class="btn btn-primary mt-3" asp-page="/Index">Back to Home</a>
+</div>
+
+<style>
+    .display-1 {
+        font-size: 8rem;
+        color: #dc3545;
+    }
+    .lead {
+        font-size: 1.25rem;
+        color: #6c757d;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004085;
+    }
+</style>

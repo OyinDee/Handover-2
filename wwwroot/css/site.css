@@ -1,0 +1,79 @@
+html {
+    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+/* Background Styling for Home Page */
+.home-page {
+    background-image: url('/Images/hero-image-1920-x-593.jpg'); /* Updated background image for home page */
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    color: #333; /* Adjust text color for readability */
+    min-height: 100vh; /* Ensure full height */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Default Background Styling for Other Pages */
+body:not(.home-page) {
+    background: none; /* No background for non-home pages */
+    color: #333; /* Default text color */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navbar Styling */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.navbar-brand, .nav-link {
+    color: #258cfb !important; /* Custom blue color for links */
+}
+
+    .navbar-brand:hover, .nav-link:hover {
+        color: #0056b3 !important; /* Darker blue on hover */
+    }
+
+.navbar-nav .nav-item .dropdown-toggle {
+    color: #007bff; /* Bootstrap primary color */
+}
+
+.navbar-nav .nav-item .dropdown-toggle:hover {
+    color: #0056b3; /* Darker shade for hover */
+}
+
+.dropdown-menu {
+    width: 300px; /* Adjust width as needed */
+}
+
+.list-group-item {
+    font-size: 0.9rem; /* Adjust font size as needed */
+}
+
+/* Footer Styling */
+footer {
+    background-color: #1a1a1a; /* Dark footer background for contrast */
+    color: #ffffff; /* Light text color for visibility */
+    padding: 10px 0;
+    text-align: center;
+    width: 100%;
+    border-top: 1px solid #e7e7e7;
+    margin-top: auto; /* Push the footer to the bottom */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .navbar-brand, .nav-link {
+        font-size: 14px;
+    }
+}

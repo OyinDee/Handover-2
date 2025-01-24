@@ -1,0 +1,103 @@
+﻿@page
+@model IndexModel
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+
+@{
+    ViewData["Title"] = "Supervisor Dashboard";
+    ViewData["BodyClass"] = "home-page"; // Assign the 'home-page' class for the background image
+}
+
+<div class="container mt-5">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+            <!-- Center the boxes vertically and horizontally -->
+            <!-- Forms Box -->
+            <div class="col-md-4">
+                <div class="card text-center shadow-lg">
+                    <div class="card-body">
+                        <h5 class="card-title">Forms</h5>
+                        <p class="card-text">Access and manage all forms here.</p>
+                        <a href="/Form" class="btn btn-primary">Go to Forms</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approval Box -->
+            <div class="col-md-4">
+                <div class="card text-center shadow-lg">
+                    <div class="card-body">
+                        <h5 class="card-title">Approval</h5>
+                        <p class="card-text">Review and approve pending requests.</p>
+                        <a href="/Approval" class="btn btn-primary">Go to Approval</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Change Log Box -->
+            <div class="col-md-4">
+                <div class="card text-center shadow-lg">
+                    <div class="card-body">
+                        <h5 class="card-title">Change Log</h5>
+                        <p class="card-text">View recent changes and updates.</p>
+                        <a href="/changelog" class="btn btn-primary">Go to Change Log</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-white" style="min-height: 70vh; display: flex; flex-direction: column; justify-content: center;">
+            <h2>Welcome!</h2>
+            <p>Please log in to continue.</p>
+            <a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Login">Login</a> <!-- Regular-sized button -->
+        </div>
+    }
+</div>
+
+<style>
+    .home-page {
+        background-image: url('/Images/hero-image-1920-x-593.jpg'); /* Update the path to your background image */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh; /* Ensure the background covers the entire page */
+    }
+
+    .card {
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        height: 100%; /* Ensure all cards have the same height */
+        border-radius: 10px; /* Rounded corners */
+    }
+
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Center content vertically */
+        align-items: center; /* Center content horizontally */
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .card-text {
+        font-size: 1.1rem;
+        color: #555;
+        text-align: center; /* Center text */
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004085;
+    }
+</style>

@@ -1,0 +1,74 @@
+﻿@page
+@model IndexModel
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@{
+    ViewData["Title"] = "Supervisor Form Approval Interface";
+}
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="container mt-5">
+        <h2>Supervisor Form Approval Interface</h2>
+
+        <table class="table table-bordered mt-4">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Form Title</th>
+                    <th>Status</th>
+                    <th>Case Number</th>
+                    <th>Officer ID</th>
+                    <th>Actions</th>
+                    <th>Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Investigation Plan 1</td>
+                    <td>In Progress</td>
+                    <td>CN-20240001</td>
+                    <td>101</td>
+                    <td>
+                        <button class="btn btn-success status-button" onclick="approveForm(1)">Approve</button>
+                        <button class="btn btn-danger status-button" onclick="rejectForm(1)">Reject</button>
+                    </td>
+                    <td>
+                        <textarea id="comment-1" class="form-control" placeholder="Add comments here..." rows="3"></textarea>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    @section Scripts {
+    <script>
+        function approveForm(formId) {
+            var comment = document.getElementById("comment-" + formId).value;
+            if (!comment.trim()) {
+                alert("Please add comments before approving.");
+                return;
+            }
+            alert("Form " + formId + " has been approved.");
+        }
+
+        function rejectForm(formId) {
+            var comment = document.getElementById("comment-" + formId).value;
+            if (!comment.trim()) {
+                alert("Please add comments before rejecting.");
+                return;
+            }
+            alert("Form " + formId + " has been rejected.");
+        }
+    </script>
+    }
+}
+else
+{
+    <div class="container mt-5 text-center">
+        <h2>Access Denied</h2>
+        <p>You must be logged in to view this page.</p>
+        <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Login">Login</a>
+    </div>
+}

@@ -1,0 +1,44 @@
+@page
+@model CreateModel
+@{
+    ViewData["Title"] = "Assign Task";
+}
+
+<h2>Assign New Task</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <div class="form-group">
+                <label for="Title">Title</label>
+                <input asp-for="TaskItem.Title" class="form-control" required />
+                <span asp-validation-for="TaskItem.Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label for="Description">Description</label>
+                <textarea asp-for="TaskItem.Description" class="form-control" required></textarea>
+                <span asp-validation-for="TaskItem.Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label for="AssignedToUserId">Assign To</label>
+                <select asp-for="TaskItem.AssignedToUserId" asp-items="Model.UserList" class="form-control" required>
+                    <option value="">-- Select User --</option>
+                </select>
+                <span asp-validation-for="TaskItem.AssignedToUserId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label for="DueDate">Due Date</label>
+                <input asp-for="TaskItem.DueDate" type="date" class="form-control" required />
+                <span asp-validation-for="TaskItem.DueDate" class="text-danger"></span>
+            </div>
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">Assign Task</button>
+                <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
