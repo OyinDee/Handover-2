@@ -1,15 +1,21 @@
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Http
 @inject SignInManager<IdentityUser> SignInManager
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var token = Antiforgery.GetAndStoreTokens(HttpContextAccessor.HttpContext).RequestToken;
+}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ...existing code... -->
+
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <link href="~/css/site.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.18/signalr.min.js"></script>
     <script src="~/js/notifications.js"></script>
-    <!-- ...existing code... -->
+
 </head>
 <body class="@ViewData["BodyClass"]">
     <header>
@@ -68,12 +74,61 @@
             </div>
         </nav>
     </header>
-    <!-- ...existing code... -->
+
     @RenderBody()
-    <!-- ...existing code... -->
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveNotification", function (message) {
+                const notificationList = document.getElementById("notificationList");
+                const newNotification = document.createElement("li");
+                newNotification.className = "list-group-item";
+                newNotification.textContent = message;
+                notificationList.prepend(newNotification);
+            });
+
+            connection.on("ReceiveNotificationList", function (notifications) {
+                const notificationList = document.getElementById("notificationList");
+                notificationList.innerHTML = '';
+                
+                if (!notifications || notifications.length === 0) {
+                    notificationList.innerHTML = '<li class="list-group-item">No new notifications</li>';
+                    return;
+                }
+
+                notifications.forEach(notification => {
+                    const newNotification = document.createElement("li");
+                    newNotification.className = "list-group-item";
+                    newNotification.textContent = notification.message;
+                    notificationList.appendChild(newNotification);
+                });
+            });
+
+            connection.start()
+                .then(() => console.log("SignalR Connected"))
+                .catch(err => console.error("SignalR Connection Error:", err));
+
+            document.getElementById("notificationsDropdown").addEventListener("click", async function () {
+                const notificationList = document.getElementById("notificationList");
+                notificationList.innerHTML = '<li class="list-group-item">Loading...</li>';
+
+                try {
+                    await connection.invoke("GetUserNotifications");
+                } catch (error) {
+                    console.error("Error fetching notifications:", error);
+                    notificationList.innerHTML = '<li class="list-group-item">Error loading notifications</li>';
+                }
+            });
+        });
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

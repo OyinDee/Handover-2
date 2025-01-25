@@ -1,0 +1,158 @@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
+
+@if (User.Identity.IsAuthenticated)
+{
+    var user = await UserManager.GetUserAsync(User);
+    <input type="hidden" id="currentUserId" value="@user.Id" />
+    
+    <div class="dropdown">
+        <button class="btn btn-link nav-link dropdown-toggle position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-bell"></i>
+            <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none;">
+                0
+            </span>
+        </button>
+        <ul id="notificationList" class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 300px; max-height: 400px; overflow-y: auto;">
+            <li class="dropdown-header d-flex justify-content-between align-items-center">
+                <span>Notifications</span>
+                <button id="markAllRead" class="btn btn-sm btn-link text-decoration-none">Mark all as read</button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li id="noNotifications" class="dropdown-item text-muted">No notifications</li>
+        </ul>
+    </div>
+
+    <script>
+        let notificationConnection;
+
+        function initializeSignalR() {
+            notificationConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .build();
+
+            notificationConnection.on("ReceiveNotification", function (message) {
+                loadNotifications();
+            });
+
+            notificationConnection.start()
+                .catch(function (err) {
+                    console.error(err.toString());
+                });
+        }
+
+        function loadNotifications() {
+            const userId = document.getElementById('currentUserId').value;
+            fetch(`/api/Notification/user/${userId}`)
+                .then(response => response.json())
+                .then(notifications => {
+                    const container = document.getElementById('notificationList');
+                    const noNotificationsElement = document.getElementById('noNotifications');
+                    const notificationItems = container.querySelectorAll('.notification-item');
+                    
+                    // Remove existing notification items
+                    notificationItems.forEach(item => item.remove());
+
+                    if (notifications.length === 0) {
+                        noNotificationsElement.style.display = 'block';
+                    } else {
+                        noNotificationsElement.style.display = 'none';
+                        notifications.forEach(notification => {
+                            const li = document.createElement('li');
+                            li.className = 'dropdown-item notification-item' + (notification.isRead ? '' : ' unread');
+                            li.innerHTML = `
+                                <div class="d-flex w-100 justify-content-between">
+                                    <p class="mb-1">${notification.message}</p>
+                                    <small class="text-muted">${new Date(notification.createdAt).toLocaleString()}</small>
+                                </div>
+                            `;
+                            li.onclick = () => markAsRead(notification.id);
+                            
+                            // Insert after the divider
+                            container.querySelector('.dropdown-divider').after(li);
+                        });
+                    }
+                    updateUnreadCount();
+                });
+        }
+
+        function updateUnreadCount() {
+            const userId = document.getElementById('currentUserId').value;
+            fetch(`/api/Notification/unread/${userId}`)
+                .then(response => response.json())
+                .then(count => {
+                    const badge = document.getElementById('notificationBadge');
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'block' : 'none';
+                });
+        }
+
+        function markAsRead(notificationId) {
+            fetch(`/api/Notification/markAsRead/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                loadNotifications();
+            });
+        }
+
+        document.getElementById('markAllRead').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const userId = document.getElementById('currentUserId').value;
+            fetch(`/api/Notification/markAllAsRead/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(() => {
+                loadNotifications();
+            });
+        });
+
+        // Initialize when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSignalR();
+            loadNotifications();
+            // Refresh notifications every minute
+            setInterval(loadNotifications, 60000);
+        });
+    </script>
+
+    <style>
+        .notification-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background-color: #e9ecef;
+        }
+
+        .notification-item.unread:hover {
+            background-color: #dee2e6;
+        }
+
+        #notificationBadge {
+            font-size: 0.6rem;
+            padding: 0.25em 0.4em;
+        }
+
+        #markAllRead {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+        }
+
+        #markAllRead:hover {
+            color: #0056b3 !important;
+        }
+    </style>
+}

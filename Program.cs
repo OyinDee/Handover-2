@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Handover_2.Services;  // Add this line for NotificationService
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -34,13 +35,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             maxRetryCount: 10,
             maxRetryDelay: TimeSpan.FromSeconds(60),
             errorNumbersToAdd: new[] { 4060, 40197, 40501, 40613, 49918, 49919, 49920 });
-        sqlOptions.CommandTimeout(30);
+
         sqlOptions.MigrationsHistoryTable("__EFMigrationsHistory");
     }));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => {
-    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedAccount = false;
     
     // Add lockout settings
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
@@ -53,8 +54,11 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => {
 // Replace the problematic configuration with this:
 builder.Services.Configure<IdentityOptions>(options => { });
 
+// Fix the incorrect UserClaimsPrincipalFactory configuration
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, 
+    UserClaimsPrincipalFactory<IdentityUser, IdentityRole>>();
+
 // Add Identity event handlers for logging
-builder.Services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, UserClaimsPrincipalFactory<IdentityUser, IdentityRole>>();
 builder.Services.Configure<SecurityStampValidatorOptions>(options => {
     options.ValidationInterval = TimeSpan.FromMinutes(30);
 });
@@ -65,6 +69,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Events.OnValidatePrincipal = async context =>
     {
+        if (context?.HttpContext?.RequestServices == null) return;
+        
         var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<IdentityUser>>();
         var user = await userManager.GetUserAsync(context.Principal);
         if (user != null && await userManager.IsLockedOutAsync(user))
@@ -76,49 +82,52 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddRazorPages();
+
+// Add controllers and API support
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
+
+// Add API explorer for better route discovery
+builder.Services.AddEndpointsApiExplorer();
+
+// Update CORS configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SignalRPolicy", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true) // Be careful with this in production
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+// Register NotificationService
+builder.Services.AddScoped<NotificationService>();
+
+// Add SignalR after CORS
 builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Add role and admin user seeding
+// Single initialization point
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-
-    // Create roles
-    var roles = new[] { "Supervisor", "User" };
-    foreach (var role in roles)
+    var services = scope.ServiceProvider;
+    try
     {
-        if (!await roleManager.RoleExistsAsync(role))
-            await roleManager.CreateAsync(new IdentityRole(role));
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        context.Database.Migrate();
+        
+        await SeedData.Initialize(services);
+        Log.Information("Database seeded successfully");
     }
-
-    // Create default admin user
-    var adminEmail = "admin001@admin.com";
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-    if (adminUser == null)
+    catch (Exception ex)
     {
-        adminUser = new IdentityUser
-        {
-            UserName = "admin001",
-            Email = adminEmail,
-            EmailConfirmed = true
-        };
-
-        var result = await userManager.CreateAsync(adminUser, "Admin@001"); // Password is "Admin@001"
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Supervisor");
-        }
-    }
-
-    // Change user with ID 1 to Supervisor
-    var userWithId1 = userManager.Users.FirstOrDefault(u => u.Id == "1");
-    if (userWithId1 != null && !await userManager.IsInRoleAsync(userWithId1, "Supervisor"))
-    {
-        await userManager.AddToRoleAsync(userWithId1, "Supervisor");
+        Log.Error(ex, "An error occurred while seeding the database: {Message}", ex.Message);
     }
 }
 
@@ -151,51 +160,57 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+// Add CORS middleware before routing
+app.UseCors("SignalRPolicy");
+
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapRazorPages();
-app.MapHub<NotificationHub>("/notificationHub");
+// Update endpoint configuration
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers(); // This should come first
+    endpoints.MapRazorPages();
+    endpoints.MapHub<NotificationHub>("/notificationHub");
+});
 
 // Clean up logger on application shutdown
 app.Lifetime.ApplicationStopped.Register(Log.CloseAndFlush);
 
 app.Run();
 
-public partial class Program
-{
-    public static async Task Main(string[] args)
-    {
-        var host = CreateHostBuilder(args).Build();
-
-        using (var scope = host.Services.CreateScope())
-        {
-            var services = scope.ServiceProvider;
-            try
-            {
-                await SeedData.Initialize(services);
-                await SeedData.AddAdminUser(services); // Add this line to seed another admin user
-            }
-            catch (Exception ex)
-            {
-                var logger = services.GetRequiredService<ILogger<Program>>();
-                logger.LogError(ex, "An error occurred seeding the DB.");
-            }
-        }
-
-        await host.RunAsync();
-    }
-
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();
-            });
-}
-
 public class NotificationHub : Hub
 {
+    private readonly NotificationService _notificationService;
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly ILogger<NotificationHub> _logger;
+
+    public NotificationHub(
+        NotificationService notificationService,
+        UserManager<IdentityUser> userManager,
+        ILogger<NotificationHub> logger)
+    {
+        _notificationService = notificationService;
+        _userManager = userManager;
+        _logger = logger;
+    }
+
+    public async Task GetUserNotifications()
+    {
+        try
+        {
+            var user = await _userManager.GetUserAsync(Context.User);
+            if (user == null) return;
+
+            var notifications = await _notificationService.GetUserNotificationsAsync(user.Id);
+            await Clients.Caller.SendAsync("ReceiveNotificationList", notifications);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching notifications through SignalR");
+            throw;
+        }
+    }
 }

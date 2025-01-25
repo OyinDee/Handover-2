@@ -77,3 +77,39 @@ footer {
         font-size: 14px;
     }
 }
+
+/* Add stronger specificity for bootstrap overrides */
+html body .btn-primary,
+html body .btn-primary:hover,
+html body .btn-primary:active,
+html body .btn-primary:focus {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+html body .btn-secondary,
+html body .btn-success,
+html body .btn-danger,
+html body .btn-warning,
+html body .btn-info {
+    background-color: #333333 !important;
+    border-color: #333333 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+html body .badge {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+}
+
+/* Ensure hover states don't revert to Bootstrap colors */
+html body .btn:hover,
+html body .btn:focus,
+html body .btn:active {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: none !important;
+}

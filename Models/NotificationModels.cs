@@ -1,39 +1,65 @@
 using System;
-using Handover_2.Data;  // Add this line
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
+using Handover_2.Data;
 
 namespace Handover_2.Models
 {
     public class Notification
     {
+        [Key]
         public int Id { get; set; }
+
+        [Required]
+        [StringLength(200)]
         public string Title { get; set; }
+
+        [Required]
+        [StringLength(4000)]
         public string Message { get; set; }
-        public DateTime CreatedAt { get; set; }
+
+        [Required]
+        [StringLength(450)]
         public string UserId { get; set; }
+
+        public int TaskId { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public bool IsRead { get; set; }
-        public string? TargetRole { get; set; }
-        public NotificationType Type { get; set; }  // Use the enum instead of string
-        public int TaskId { get; set; }  // Required TaskId for task relationship
-        
-        // Navigation property
+
+        public NotificationType Type { get; set; }
+
+        [ForeignKey("TaskId")]
         public virtual WorkTask Task { get; set; }
+
+        [ForeignKey("UserId")]
+        public virtual IdentityUser User { get; set; }
     }
 
     public class NotificationHistory
     {
+        [Key]
         public int Id { get; set; }
+
         public int NotificationId { get; set; }
-        public string Title { get; set; }
-        public string Message { get; set; }
-        public DateTime CreatedAt { get; set; }
+
+        [Required]
+        [StringLength(450)]
         public string UserId { get; set; }
-        public bool IsRead { get; set; }
-        public NotificationType Type { get; set; }
-        public int TaskId { get; set; }  // Changed from nullable to required
-        public DateTime? ReadAt { get; set; }  // Added ReadAt property
-        
-        // Navigation properties
+
+        public int? TaskId { get; set; }
+
+        public DateTime? ReadAt { get; set; }
+
+        [ForeignKey("NotificationId")]
         public virtual Notification Notification { get; set; }
+
+        [ForeignKey("UserId")]
+        public virtual IdentityUser User { get; set; }
+
+        [ForeignKey("TaskId")]
         public virtual WorkTask Task { get; set; }
     }
 
@@ -41,9 +67,6 @@ namespace Handover_2.Models
     {
         TaskAssigned,
         TaskUpdated,
-        TaskCompleted,
-        Feedback,
-        Reminder,
-        Other
+        TaskCompleted
     }
 }

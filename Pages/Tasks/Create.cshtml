@@ -1,44 +1,135 @@
 @page
 @model CreateModel
 @{
-    ViewData["Title"] = "Assign Task";
+    ViewData["Title"] = "Create Task";
 }
 
-<h2>Assign New Task</h2>
+<div class="container py-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Create New Task</h2>
+                    <form method="post">
+                        <input type="hidden" asp-for="TaskItem.Status" value="Pending" />
+                        <div class="mb-3">
+                            <label asp-for="TaskItem.Title" class="form-label">Title</label>
+                            <input asp-for="TaskItem.Title" class="form-control" required />
+                            <span asp-validation-for="TaskItem.Title" class="text-danger"></span>
+                        </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <form method="post">
-            <div class="form-group">
-                <label for="Title">Title</label>
-                <input asp-for="TaskItem.Title" class="form-control" required />
-                <span asp-validation-for="TaskItem.Title" class="text-danger"></span>
+                        <div class="mb-3">
+                            <label asp-for="TaskItem.Description" class="form-label">Description</label>
+                            <textarea asp-for="TaskItem.Description" class="form-control" rows="4" required></textarea>
+                            <span asp-validation-for="TaskItem.Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TaskItem.AssignedToUserId" class="form-label">Assign To</label>
+                            <select asp-for="TaskItem.AssignedToUserId" 
+                                    asp-items="Model.UserList" 
+                                    class="form-select" 
+                                    required>
+                                <option value="">-- Select User --</option>
+                            </select>
+                            <span asp-validation-for="TaskItem.AssignedToUserId" class="text-danger"></span>
+                            <small class="form-text text-muted">Select the user to assign this task to</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TaskItem.DueDate" class="form-label">Due Date</label>
+                            <input asp-for="TaskItem.DueDate" type="datetime-local" class="form-control" required />
+                            <span asp-validation-for="TaskItem.DueDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TaskItem.Priority" class="form-label">Priority</label>
+                            <select asp-for="TaskItem.Priority" class="form-select" required>
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Create Task</button>
+                            <a asp-page="./Index" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="Description">Description</label>
-                <textarea asp-for="TaskItem.Description" class="form-control" required></textarea>
-                <span asp-validation-for="TaskItem.Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label for="AssignedToUserId">Assign To</label>
-                <select asp-for="TaskItem.AssignedToUserId" asp-items="Model.UserList" class="form-control" required>
-                    <option value="">-- Select User --</option>
-                </select>
-                <span asp-validation-for="TaskItem.AssignedToUserId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label for="DueDate">Due Date</label>
-                <input asp-for="TaskItem.DueDate" type="date" class="form-control" required />
-                <span asp-validation-for="TaskItem.DueDate" class="text-danger"></span>
-            </div>
-            <div class="form-group mt-3">
-                <button type="submit" class="btn btn-primary">Assign Task</button>
-                <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
+<style>
+    .form-label {
+        font-weight: 500;
+    }
+    
+    .card {
+        border-radius: 15px;
+        border: none;
+    }
+    
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-weight: 500;
+    }
+    
+    .form-control, .form-select {
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+</style>
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Log the selected user ID when it changes
+        document.querySelector('[name="TaskItem.AssignedToUserId"]').addEventListener('change', function() {
+            console.log('Selected user ID:', this.value);
+        });
+
+        // Reset form fields after successful submission
+        @if (!string.IsNullOrEmpty(TempData["Success"]?.ToString()))
+        {
+            <text>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Reset all form fields
+                document.querySelector('form').reset();
+                
+                // Scroll to top to show success message
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // Auto-hide success message after 5 seconds
+                setTimeout(function() {
+                    const alert = document.querySelector('.alert-success');
+                    if (alert) {
+                        alert.classList.remove('show');
+                        setTimeout(() => alert.remove(), 150);
+                    }
+                }, 5000);
+            });
+            </text>
+        }
+    </script>
 }

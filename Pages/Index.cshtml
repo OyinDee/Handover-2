@@ -2,102 +2,166 @@
 @model IndexModel
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
-
+@inject UserManager<IdentityUser> UserManager
 @{
-    ViewData["Title"] = "Supervisor Dashboard";
-    ViewData["BodyClass"] = "home-page"; // Assign the 'home-page' class for the background image
+    ViewData["Title"] = "Home";
+    var user = await UserManager.GetUserAsync(User);
+    var roles = user != null ? await UserManager.GetRolesAsync(user) : new List<string>();
 }
 
-<div class="container mt-5">
-    @if (SignInManager.IsSignedIn(User))
-    {
-        <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
-            <!-- Center the boxes vertically and horizontally -->
-            <!-- Forms Box -->
-            <div class="col-md-4">
-                <div class="card text-center shadow-lg">
-                    <div class="card-body">
-                        <h5 class="card-title">Forms</h5>
-                        <p class="card-text">Access and manage all forms here.</p>
-                        <a href="/Form" class="btn btn-primary">Go to Forms</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Approval Box -->
-            <div class="col-md-4">
-                <div class="card text-center shadow-lg">
-                    <div class="card-body">
-                        <h5 class="card-title">Approval</h5>
-                        <p class="card-text">Review and approve pending requests.</p>
-                        <a href="/Approval" class="btn btn-primary">Go to Approval</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Change Log Box -->
-            <div class="col-md-4">
-                <div class="card text-center shadow-lg">
-                    <div class="card-body">
-                        <h5 class="card-title">Change Log</h5>
-                        <p class="card-text">View recent changes and updates.</p>
-                        <a href="/changelog" class="btn btn-primary">Go to Change Log</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="text-center text-white" style="min-height: 70vh; display: flex; flex-direction: column; justify-content: center;">
-            <h2>Welcome!</h2>
-            <p>Please log in to continue.</p>
-            <a class="btn btn-primary btn-sm" asp-area="Identity" asp-page="/Account/Login">Login</a> <!-- Regular-sized button -->
-        </div>
-    }
+<div class="text-center">
+    <p>Current user: @User.Identity?.Name</p>
 </div>
+
+@if (User.IsInRole("Supervisor"))
+{
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-4 text-primary">Welcome, Supervisor</h1>
+                <p class="lead text-muted">Manage your team and tasks from this dashboard.</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12 col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm hover-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="icon-box mb-4">
+                            <i class="fas fa-tasks fa-2x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Create Task</h5>
+                        <p class="card-text flex-grow-1">Assign new tasks to team members and set priorities.</p>
+                        <a asp-page="/Tasks/Create" class="btn btn-primary mt-auto">Create New Task</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm hover-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="icon-box mb-4">
+                            <i class="fas fa-clipboard-list fa-2x text-success"></i>
+                        </div>
+                        <h5 class="card-title">Manage Tasks</h5>
+                        <p class="card-text flex-grow-1">View and manage all team tasks and their status.</p>
+                        <a asp-page="/Tasks/Manage" class="btn btn-success mt-auto">Manage Tasks</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm hover-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="icon-box mb-4">
+                            <i class="fas fa-chart-line fa-2x text-info"></i>
+                        </div>
+                        <h5 class="card-title">Statistics</h5>
+                        <p class="card-text flex-grow-1">View team performance metrics and task completion rates.</p>
+                        <a href="#" class="btn btn-info mt-auto">View Statistics</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container">
+        <h1 class="display-4 mb-4">My Dashboard</h1>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">My Tasks</h5>
+                        <p class="card-text">View and manage your assigned tasks.</p>
+                        <a asp-page="/Tasks/Index" class="btn btn-primary">View My Tasks</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
     .home-page {
-        background-image: url('/Images/hero-image-1920-x-593.jpg'); /* Update the path to your background image */
+        background-image: url('/Images/hero-image-1920-x-593.jpg');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        min-height: 100vh; /* Ensure the background covers the entire page */
+        min-height: 100vh;
+    }
+
+    .hover-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+    }
+
+    .icon-box {
+        text-align: center;
+        padding: 15px;
+        border-radius: 50%;
+        background: rgba(0,123,255,0.1);
+        width: 70px;
+        height: 70px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .card {
         margin-bottom: 20px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        height: 100%; /* Ensure all cards have the same height */
-        border-radius: 10px; /* Rounded corners */
+        height: 100%;
+        border-radius: 15px;
+        overflow: hidden;
+        border: none;
     }
 
     .card-body {
+        padding: 1.5rem;
         display: flex;
         flex-direction: column;
-        justify-content: center; /* Center content vertically */
-        align-items: center; /* Center content horizontally */
+        justify-content: center;
+        align-items: center;
     }
 
     .card-title {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: bold;
+        margin-bottom: 1rem;
     }
 
     .card-text {
-        font-size: 1.1rem;
+        font-size: 1rem;
         color: #555;
-        text-align: center; /* Center text */
+        text-align: center;
     }
 
-    .btn-primary {
-        background-color: #007bff;
-        border-color: #007bff;
+    .btn {
+        border-radius: 30px;
+        padding: 0.5rem 1.25rem;
+        font-weight: 500;
+        width: 100%;
+        max-width: 200px;
     }
 
-    .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #004085;
+    .lead {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    .display-4 {
+        font-size: calc(1.5rem + 2vw);
     }
 </style>

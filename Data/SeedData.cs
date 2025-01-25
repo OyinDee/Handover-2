@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,55 +13,54 @@ namespace Handover_2.Data
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+            var logger = serviceProvider.GetRequiredService<ILogger<IdentityUser>>();
 
-            string[] roleNames = { "Supervisor", "Admin", "User" };
-            IdentityResult roleResult;
-
+            // Create roles
+            string[] roleNames = { "Supervisor", "User" };
             foreach (var roleName in roleNames)
             {
-                var roleExist = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
+                if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    roleResult = await roleManager.CreateAsync(new IdentityRole(roleName));
+                    var result = await roleManager.CreateAsync(new IdentityRole(roleName));
+                    logger.LogInformation($"Role {roleName} created: {result.Succeeded}");
                 }
             }
 
-            // Create a default admin user if not exists
-            var adminUser = await userManager.FindByEmailAsync("admin@admin.com");
+            // Create admin user
+            var adminEmail = "admin@admin.com";
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
             if (adminUser == null)
             {
                 adminUser = new IdentityUser
                 {
-                    UserName = "admin@admin.com",
-                    Email = "admin@admin.com"
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    EmailConfirmed = true
                 };
-                var result = await userManager.CreateAsync(adminUser, "Admin@123");
-                if (result.Succeeded)
+
+                var createResult = await userManager.CreateAsync(adminUser, "Admin@123");
+                logger.LogInformation($"Admin user created: {createResult.Succeeded}");
+
+                if (createResult.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    var roleResult = await userManager.AddToRoleAsync(adminUser, "Supervisor");
+                    logger.LogInformation($"Admin role assigned: {roleResult.Succeeded}");
                 }
             }
-        }
-
-        public static async Task AddAdminUser(IServiceProvider serviceProvider)
-        {
-            var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
-
-            // Create another admin user
-            var anotherAdminUser = await userManager.FindByEmailAsync("admin2@admin.com");
-            if (anotherAdminUser == null)
+            else
             {
-                anotherAdminUser = new IdentityUser
+                // Ensure existing admin has Supervisor role
+                if (!await userManager.IsInRoleAsync(adminUser, "Supervisor"))
                 {
-                    UserName = "admin2@admin.com",
-                    Email = "admin2@admin.com"
-                };
-                var result = await userManager.CreateAsync(anotherAdminUser, "Admin@1234");
-                if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(anotherAdminUser, "Admin");
+                    var roleResult = await userManager.AddToRoleAsync(adminUser, "Supervisor");
+                    logger.LogInformation($"Admin role assigned to existing user: {roleResult.Succeeded}");
                 }
             }
+
+            // Verify role assignment
+            var roles = await userManager.GetRolesAsync(adminUser);
+            logger.LogInformation($"Admin user roles: {string.Join(", ", roles)}");
         }
     }
 }

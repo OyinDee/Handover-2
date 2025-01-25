@@ -3,10 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Handover</title>
+    <title>@ViewData["Title"] - Handover 2</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Handover.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Handover_2.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <style>
         /* Ensure the page takes the full height and the footer stays at the bottom */
         html, body {
@@ -26,6 +27,63 @@
             margin-right: 10px; /* Add spacing between the logo and the text */
         }
     </style>
+    <!-- Add this new custom styles section after all other styles -->
+    <style>
+        /* Override Bootstrap components with !important */
+        body .btn-primary {
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            color: #ffffff !important;
+        }
+
+        body .btn-secondary {
+            background-color: #666666 !important;
+            border-color: #666666 !important;
+            color: #ffffff !important;
+        }
+
+        body .btn-success {
+            background-color: #333333 !important;
+            border-color: #333333 !important;
+            color: #ffffff !important;
+        }
+
+        body .btn-danger {
+            background-color: #222222 !important;
+            border-color: #222222 !important;
+            color: #ffffff !important;
+        }
+
+        body .btn-warning {
+            background-color: #444444 !important;
+            border-color: #444444 !important;
+            color: #ffffff !important;
+        }
+
+        body .btn-info {
+            background-color: #555555 !important;
+            border-color: #555555 !important;
+            color: #ffffff !important;
+        }
+
+        body .badge {
+            background-color: #333333 !important;
+            color: #ffffff !important;
+        }
+
+        body .bg-primary,
+        body .bg-success,
+        body .bg-danger,
+        body .bg-warning,
+        body .bg-info {
+            background-color: #333333 !important;
+        }
+
+        body .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body class="@ViewData["BodyClass"]">
     <header>
@@ -34,7 +92,7 @@
                 <!-- Add the logo here -->
                 <a class="navbar-brand" asp-area="" asp-page="/Index">
                     <img src="~/Images/durham-force-crest-landscape-basic-white.png" alt="Durham Constabulary Logo" />
-                    Handover
+                    Handover 2
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -45,11 +103,23 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
                         </li>
+                        @if (User.IsInRole("Supervisor"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Tasks/Create">Create Task</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Tasks/Manage">Manage Tasks</a>
+                            </li>
+                        }
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Tasks/Index">My Tasks</a>
                         </li>
                     </ul>
-                    <partial name="_LoginPartial" />
+                    <div class="d-flex align-items-center">
+                        <partial name="_NotificationPartial" />
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
         </nav>
@@ -63,15 +133,16 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2024 - Handover - <a asp-area="" asp-page="/Privacy">Privacy</a>
+            &copy; 2024 - Handover 2 - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
-
-    <!-- Render Scripts Section Here, Make Sure It's Only Called Once -->
-    @RenderSection("Scripts", required: false)
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/notifications.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
